@@ -1,0 +1,123 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.4'
+}
+
+// The repo was on Maven (Spring Boot 1.5.22, Java 8). It is Gradle now, like every
+// other migrated component: the shared PHEE CircleCI template runs ./gradlew, and the
+// coming mifos-gradle-conventions plugins are Gradle only. Same move already made for
+// ph-ee-exporter, the other Maven repo in this migration.
+
+// The build has to run on Java 21: Error Prone and the core library break on 23, and
+// without a toolchain that is a confusing compile error instead of a clear one.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+bootJar {
+    mainClass = 'org.apache.fineract.ServerApplication'
+    enabled = true
+    archiveClassifier = '' // so bootJar replaces the default jar
+    // fixed name so the Dockerfile can COPY it without a glob
+    archiveFileName = 'app.jar'
+}
+
+springBoot {
+    mainClass = 'org.apache.fineract.ServerApplication'
+}
+
+// this is a deployable application, the fat jar is the only artifact
+jar {
+    enabled = false
+}
+
+repositories {
+    mavenCentral()
+    maven { url = uri('https://mifos.jfrog.io/artifactory/phee-gradle-local') }
+}
+
+dependencies {
+    // The BOM pins Spring Boot 3.4, Jakarta EE 10, EclipseLink 4, Flyway 10 and every
+    // other shared library version. Do NOT hardcode managed versions. This is a
+    // deployable application (leaf node), so use enforcedPlatform().
+    implementation enforcedPlatform('org.mifos:paymenthub-ee-bom:2.0.0-SNAPSHOT')
+    // annotationProcessor is its own resolvable configuration: it does not extend
+    // implementation, so it does not see the platform above and needs its own.
+    annotationProcessor enforcedPlatform('org.mifos:paymenthub-ee-bom:2.0.0-SNAPSHOT')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    // The exclusion is not new: the pom had it on this same starter and the port to
+    // Gradle lost it, which put hibernate-core 6.6 on the runtime classpath next to
+    // EclipseLink 4 - two JPA providers in one deployable jar. EclipseLink is the
+    // provider here (see EclipselinkJpaConfig), Hibernate is never the one used.
+    // The pom's other two exclusions on this starter are gone on their own:
+    // hibernate-entitymanager was merged into hibernate-core, and tomcat-jdbc is no
+    // longer the starter's pool (Hikari is).
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa') {
+        exclude group: 'org.hibernate.orm', module: 'hibernate-core'
+    }
+
+    // Spring Security 6 line. The old stack this repo was built on
+    // (spring-security-oauth2 2.4.1 + spring-security-jwt 1.1.0) was discontinued and
+    // does not exist for Spring Boot 3. The resource-server half moved to
+    // spring-boot-starter-oauth2-resource-server (Nimbus JOSE); the authorization
+    // server half - /oauth/token, /oauth/token_key, /oauth/check_token - is
+    // re-implemented in TokenController, because its successor
+    // (spring-authorization-server) dropped the password grant this service exists to
+    // serve. Same approach already taken in ph-ee-operations-app.
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+    // EclipseLink is the JPA provider here, not Hibernate (see EclipselinkJpaConfig).
+    // 4.x implements jakarta.persistence; 2.7.x implements javax.persistence and does
+    // not work on Spring Boot 3.
+    implementation 'org.eclipse.persistence:org.eclipse.persistence.jpa'
+    implementation 'jakarta.persistence:jakarta.persistence-api'
+    // GroupRepository uses jakarta.transaction.Transactional. In Spring Boot 1.5 the
+    // data-jpa starter declared the transaction API itself; it does not any more, so
+    // without this line the only thing bringing it in was hibernate-core - the provider
+    // excluded above. Declared here because the code imports it, not inherited from a
+    // provider this app does not use.
+    implementation 'jakarta.transaction:jakarta.transaction-api'
+    annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen'
+
+    implementation 'org.json:json'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'com.zaxxer:HikariCP'
+    implementation 'com.mysql:mysql-connector-j'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
+
+    // Ehcache 2 (net.sf.ehcache) removed: Spring 6 dropped EhCacheCacheManager.
+    // Caffeine gives the same TTL/max-size behaviour (see CacheConfig).
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // joda-time is only used for the LocalDate fields of four read-only DTOs. Left as
+    // is: swapping it for java.time is a code change, not a version change, and this
+    // migration keeps behaviour identical. Version stays pinned, joda is not in the BOM.
+    implementation 'joda-time:joda-time:2.10.6'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+group = 'org.apache.fineract'
+version = '2.0.0.mifos-SNAPSHOT'
+description = 'paymenthub-ee-auth'
+
+// Without this Gradle uses the JUnit 4 runner and silently skips every JUnit 5 test,
+// so the build stays green while testing nothing.
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs.addAll([
+        '-parameters'
+    ])
+}
