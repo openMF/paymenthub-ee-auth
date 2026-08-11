@@ -100,7 +100,10 @@ dependencies {
     // migration keeps behaviour identical. Version stays pinned, joda is not in the BOM.
     implementation 'joda-time:joda-time:2.10.6'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    // JUnit 5, Mockito and spring-test (MockMvc), all from the BOM. TokenControllerTest
+    // drives the token endpoint through MockMvc: it is 400 lines of hand-written
+    // authorization server, and the HTTP checks that cover it today are manual.
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
