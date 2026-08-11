@@ -76,10 +76,39 @@ public class TenantDatabaseUpgradeService {
     @Value("#{'${tenants}'.split(',')}")
     private List<String> tenants;
 
+    /**
+     * Whether this service owns the core schema. The tenant schemas already have this
+     * switch, one per tenant, in the auto_update column read by flywayTenants() below;
+     * the core schema had none, and it is the one that cannot recover.
+     */
+    @Value("${fineract.datasource.core.auto-update:true}")
+    private boolean coreAutoUpdateEnabled;
+
     @PostConstruct
     public void setupEnvironment() {
-        flywayDefaultSchema();
-        insertTenants();
+        // Both calls below write to the core schema: one applies this repository's
+        // migrations, the other registers tenants in tenant_server_connections. On a
+        // deployment where the core schema belongs to another service the first one is
+        // fatal - ph-ee-operations-app ships the same table as V2 and this repository
+        // ships it as V1, so Flyway replays it out of order, the CREATE TABLE fails on a
+        // table that is already there, and flywayDefaultSchema() lets the exception
+        // escape, so the application does not start at all. (The same collision on a
+        // tenant schema is caught per tenant and only logged.)
+        //
+        // Turning this off makes the service a reader of a schema it does not own:
+        // whoever owns it applies the migrations and registers the tenants. Everything
+        // this service needs is already there in that case - m_appuser, m_role,
+        // m_permission and oauth_client_details all come from the owner.
+        //
+        // Default true, so a standalone deployment with a database of its own keeps
+        // building it exactly as before.
+        if (coreAutoUpdateEnabled) {
+            flywayDefaultSchema();
+            insertTenants();
+        } else {
+            logger.info("Core schema auto-update is off: not migrating the core schema and not registering tenants."
+                    + " Tenants are read from tenant_server_connections as another service wrote them.");
+        }
         flywayTenants();
     }
 
