@@ -77,12 +77,19 @@ public class TenantDatabaseUpgradeService {
     private List<String> tenants;
 
     /**
-     * Whether this service owns the core schema. The tenant schemas already have this
-     * switch, one per tenant, in the auto_update column read by flywayTenants() below;
-     * the core schema had none, and it is the one that cannot recover.
+     * Whether this service builds its own database. Off, it applies no migration to any
+     * schema - core or tenant - and only reads what another service put there.
+     *
+     * It has to cover the tenant schemas too, not only the core one. The tenant schemas
+     * do have their own switch, the auto_update column, but that column lives in
+     * tenant_server_connections, which is a table in the core schema this service does
+     * not own: telling an operator to set auto_update = 0 means asking them to write into
+     * the very schema we are trying not to touch. And it defaults to 1 on a real
+     * deployment - it is 1 for both tenants on gazelle - so leaving the tenant half
+     * ungated means the switch does not do what its name promises.
      */
     @Value("${fineract.datasource.core.auto-update:true}")
-    private boolean coreAutoUpdateEnabled;
+    private boolean autoUpdateEnabled;
 
     @PostConstruct
     public void setupEnvironment() {
@@ -102,14 +109,23 @@ public class TenantDatabaseUpgradeService {
         //
         // Default true, so a standalone deployment with a database of its own keeps
         // building it exactly as before.
-        if (coreAutoUpdateEnabled) {
+        //
+        // flywayTenants() is gated as well, and that half is not theoretical. Run against
+        // the real gazelle database with only the core call skipped, Flyway finds a tenant
+        // schema of 255 tables with no history of its own, BASELINES it - creating a
+        // flyway_schema_history in a schema owned by ph-ee-operations-app - then tries to
+        // apply V2 on top of tables that already exist and fails. What is left behind is a
+        // history table with a failed row in it, which blocks Flyway for whoever does own
+        // that schema until someone runs repair() by hand. The loop catches per tenant and
+        // only logs, so the service starts and the pod goes green with one ERROR line.
+        if (autoUpdateEnabled) {
             flywayDefaultSchema();
             insertTenants();
+            flywayTenants();
         } else {
-            logger.info("Core schema auto-update is off: not migrating the core schema and not registering tenants."
-                    + " Tenants are read from tenant_server_connections as another service wrote them.");
+            logger.info("Database auto-update is off: applying no migration to the core schema or to any tenant,"
+                    + " and not registering tenants. Every schema is read as another service wrote it.");
         }
-        flywayTenants();
     }
 
     private void flywayTenants() {
