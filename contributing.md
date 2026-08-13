@@ -1,6 +1,5 @@
-# Contributing to paymenthub-ee-auth
-
-Thank you for your interest in contributing to the paymenthub-ee-auth! We welcome contributions from the community to help improve financial inclusion solutions globally.
+# Contributing to Payment Hub EE
+Thank you for your interest in contributing to the Payment Hub EE! We welcome contributions from the community to help improve financial inclusion solutions globally.
 
 To ensure a smooth collaboration process and maintain code quality, we enforce a strict **7-Step Contribution Workflow**. Please read this guide carefully before submitting any code.
 
@@ -10,7 +9,6 @@ To ensure a smooth collaboration process and maintain code quality, we enforce a
 - Sign the [Contribution License Agreement](http://mifos.org/about-us/financial-legal/mifos-contributor-agreement/).
 - Always follow the [code of conduct](https://mifos.org/resources/community/code-of-conduct/) - this is important to us.
 - Learn more at our [getting started guide](https://mifosforge.jira.com/wiki/spaces/RES/pages/464322561/New+Contributor+Getting+Started+Guide).
-- Have a look at our [Wiki](https://github.com/openMF/paymenthub-ee-auth/wiki).
 - Sign up to Mifos Slack
 
 ---
@@ -28,7 +26,7 @@ We avoid "surprise" contributions. Before writing code, you must validate your i
 Before you start coding (especially for new features, UI changes, or refactoring), you must signal your intent.
 
 1. **Join the Community:** [Mifos Slack](https://mifos.slack.com)
-2. **Find the Channel:** Navigate to `# channel for repo`
+2. **Find the Channel:** Navigate to `#payment-hub`
 3. **Post Your Proposal:**
    - **Features:** Explain what you want to build and why.
    - **Bugs:** Briefly explain the issue and provide screenshots if applicable.
@@ -41,13 +39,13 @@ Before you start coding (especially for new features, UI changes, or refactoring
 All development work is tracked in Jira to manage the release backlog and ensure transparency.
 
 - **System:** [Mifos Jira](https://mifosforge.jira.com)
-- **Project:** [PROJECT NAME]
-- **Board:** [Board 166](https://mifosforge.jira.com/jira/software/c/projects/MXWAR/boards/166) (Active Development Board)
+- **Project:** [Payment Hub EE]
+- **Board:** [Board](https://mifosforge.jira.com/jira/software/c/projects/PHEE/boards/497) (Active Development Board)
 
 ### Workflow
 
-1. **Search:** Check the [Jira Board](https://mifosforge.jira.com/jira/software/c/projects/MXWAR/boards/166) to ensure the ticket doesn't already exist.
-2. **Create:** If unique, create a new ticket in Project MXWAR.
+1. **Search:** Check the [Jira Board](https://mifosforge.jira.com/jira/software/c/projects/PHEE/boards/497) to ensure the ticket doesn't already exist.
+2. **Create:** If unique, create a new ticket in Project PHEE.
    - **Summary:** `[Component] Concise description` (e.g., `[Client] Fix submit button alignment`)
    - **Description:** Steps to reproduce, expected result, actual result, and environment details.
 3. **Assign:**
@@ -67,8 +65,8 @@ We follow a strict branching model to keep our history clean.
 
 - **Upstream Branch:** Always branch from `dev`. Never branch from `master` or `main`.
 - **Naming Convention:** Your branch name must include the Jira Ticket ID.
-  - **Format:** `MXWAR-<ID>-<short-description>`
-  - **Example:** `git checkout -b MXWAR-123-fix-login-button`
+  - **Format:** `PHEE-<ID>-<short-description>`
+  - **Example:** `git checkout -b PHEE-123-fix-login-button`
 
 ### Reserved Branch Names
 
@@ -129,7 +127,7 @@ We maintain a linear, meaningful git history.
 - **One Feature = One PR:** Do not combine unrelated fixes.
 - **Squash Requirement:** If your PR contains more than 2 commits, you must squash them.
   - ❌ **Bad History:** `init`, `wip`, `typo`, `fix`, `fix again`
-  - ✅ **Good History:** `MXWAR-123: Implement client search functionality`
+  - ✅ **Good History:** `PHEE-123: Implement client search functionality`
 
 **How to Squash (Example for last 2 commits):**
 
@@ -174,7 +172,7 @@ We maintain a linear, meaningful git history.
 When you are ready to submit your PR:
 
 - [ ] **Target:** The `dev` branch.
-- [ ] **Title:** Includes the Jira Key (e.g., `MXWAR-123: Fix login button`).
+- [ ] **Title:** Includes the Jira Key (e.g., `PHEE-123: Fix login button`).
 - [ ] **Description:** Includes a link to the Jira ticket.
 - [ ] **Context:** Includes a link to the Slack discussion or summary of approval.
 - [ ] **Visuals:** "Before" and "After" screenshots are attached (if UI related).
@@ -191,11 +189,11 @@ When you are ready to submit your PR:
 
 ### Best Practices to send Pull Requests
 
-- Fork the [project](https://github.com/openMF/paymenthub-ee-auth) on GitHub
+- Fork the [project](https://github.com/openMF/ph-ee-start-here) on GitHub
 - Clone the project locally into your system.
 
 ```bash
-git clone https://github.com/your-username/paymenthub-ee-auth.git
+git clone https://github.com/your-username/ph-ee-start-here.git
 ```
 
 - We use the `main` branch for releases, hotfixes and special purposes. All regular work on releases flows into the `dev` branch.
@@ -257,16 +255,16 @@ When a repository is cloned, it has a default remote called `origin` that points
 1. Set the `upstream`.
 
 ```bash
-git remote add upstream https://github.com/openMF/paymenthub-ee-auth.git
+git remote add upstream https://github.com/openMF/ph-ee-start-here.git
 ```
 
 2. Use `git remote -v` to check the status. The output must be something like this:
 
 ```bash
-  > origin    https://github.com/your-username/paymenthub-ee-auth.git (fetch)
-  > origin    https://github.com/your-username/paymenthub-ee-auth.git (push)
-  > upstream  https://github.com/openMF/paymenthub-ee-auth.git (fetch)
-  > upstream  https://github.com/openMF/paymenthub-ee-auth.git (push)
+  > origin    https://github.com/your-username/ph-ee-start-here.git (fetch)
+  > origin    https://github.com/your-username/ph-ee-start-here.git (push)
+  > upstream  https://github.com/openMF/ph-ee-start-here.git (fetch)
+  > upstream  https://github.com/openMF/ph-ee-start-here.git (push)
 ```
 
 3. To update your local copy with remote changes, run the following: (This will give you an exact copy of the current remote. You should not have any local changes on your dev branch, if you do, use rebase instead.)
@@ -335,9 +333,12 @@ If running a build is not required for a particular commit (in some cases like a
 
 ---
 
+#
+---
+
 ## Getting Help
 
-If you get stuck, please reach out in the `#web-app` channel on [Slack](https://mifos.slack.com). We are happy to help you navigate the codebase or troubleshoot environment issues!
+If you get stuck, please reach out in the `#payment-hub` channel on [Slack](https://mifos.slack.com). We are happy to help you navigate the codebase or troubleshoot environment issues!
 
 ---
 
