@@ -48,6 +48,9 @@ dependencies {
     annotationProcessor enforcedPlatform('org.mifos:paymenthub-ee-bom:2.0.0-SNAPSHOT')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Bean Validation for the @Validated configuration records: nothing else
+    // on the classpath provides it.
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     // The exclusion is not new: the pom had it on this same starter and the port to
     // Gradle lost it, which put hibernate-core 6.6 on the runtime classpath next to

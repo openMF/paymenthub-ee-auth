@@ -24,7 +24,7 @@ import org.apache.fineract.organisation.tenant.TenantServerConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.fineract.config.properties.FineractDatasourceProperties;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -38,29 +38,32 @@ public class DataSourcePerTenantService implements DisposableBean {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Map<Long, DataSource> tenantToDataSourceMap = new HashMap<>();
 
-    @Value("${fineract.datasource.core.port}")
-    private int defaultPort;
+    private final int defaultPort;
 
-    @Value("${fineract.datasource.core.host}")
-    private String defaultHostname;
+    private final String defaultHostname;
 
-    @Value("${fineract.datasource.core.schema}")
-    private String defaultSchema;
+    private final String defaultSchema;
 
-    @Value("${fineract.datasource.core.username}")
-    private String defaultUsername;
+    private final String defaultUsername;
 
-    @Value("${fineract.datasource.core.password}")
-    private String defaultPassword;
+    private final String defaultPassword;
 
-    @Value("${fineract.datasource.common.protocol}")
-    private String jdbcProtocol;
+    private final String jdbcProtocol;
 
-    @Value("${fineract.datasource.common.subprotocol}")
-    private String jdbcSubprotocol;
+    private final String jdbcSubprotocol;
 
-    @Value("${fineract.datasource.common.driverclass_name}")
-    private String driverClass;
+    private final String driverClass;
+
+    public DataSourcePerTenantService(FineractDatasourceProperties datasource) {
+        this.defaultPort = datasource.core().port();
+        this.defaultHostname = datasource.core().host();
+        this.defaultSchema = datasource.core().schema();
+        this.defaultUsername = datasource.core().username();
+        this.defaultPassword = datasource.core().password();
+        this.jdbcProtocol = datasource.common().protocol();
+        this.jdbcSubprotocol = datasource.common().subprotocol();
+        this.driverClass = datasource.common().driverclassName();
+    }
 
     public DataSource retrieveDataSource() {
         DataSource tenantDataSource;
