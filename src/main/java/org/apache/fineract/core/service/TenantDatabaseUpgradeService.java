@@ -23,6 +23,8 @@ import org.apache.fineract.organisation.tenant.TenantServerConnection;
 import org.apache.fineract.organisation.tenant.TenantServerConnectionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.fineract.config.properties.FineractDatasourceProperties;
+import org.apache.fineract.config.properties.TokenProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,32 +48,23 @@ public class TenantDatabaseUpgradeService {
     @Autowired
     private DataSourcePerTenantService dataSourcePerTenantService;
 
-    @Value("${fineract.datasource.core.host}")
-    private String hostname;
+    private final String hostname;
 
-    @Value("${fineract.datasource.core.port}")
-    private int port;
+    private final int port;
 
-    @Value("${fineract.datasource.core.username}")
-    private String username;
+    private final String username;
 
-    @Value("${fineract.datasource.core.password}")
-    private String password;
+    private final String password;
 
-    @Value("${fineract.datasource.common.protocol}")
-    private String jdbcProtocol;
+    private final String jdbcProtocol;
 
-    @Value("${fineract.datasource.common.subprotocol}")
-    private String jdbcSubprotocol;
+    private final String jdbcSubprotocol;
 
-    @Value("${fineract.datasource.common.driverclass_name}")
-    private String driverClass;
+    private final String driverClass;
 
-    @Value("${token.access.validity-seconds}")
-    private String tokenAccessValiditySeconds;
+    private final String tokenAccessValiditySeconds;
 
-    @Value("${token.refresh.validity-seconds}")
-    private String tokenRefreshValiditySeconds;
+    private final String tokenRefreshValiditySeconds;
 
     @Value("#{'${tenants}'.split(',')}")
     private List<String> tenants;
@@ -90,6 +83,18 @@ public class TenantDatabaseUpgradeService {
      */
     @Value("${fineract.datasource.core.auto-update:true}")
     private boolean autoUpdateEnabled;
+
+    public TenantDatabaseUpgradeService(FineractDatasourceProperties datasource, TokenProperties token) {
+        this.hostname = datasource.core().host();
+        this.port = datasource.core().port();
+        this.username = datasource.core().username();
+        this.password = datasource.core().password();
+        this.jdbcProtocol = datasource.common().protocol();
+        this.jdbcSubprotocol = datasource.common().subprotocol();
+        this.driverClass = datasource.common().driverclassName();
+        this.tokenAccessValiditySeconds = token.access().validitySeconds();
+        this.tokenRefreshValiditySeconds = token.refresh().validitySeconds();
+    }
 
     @PostConstruct
     public void setupEnvironment() {
